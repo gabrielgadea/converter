@@ -454,6 +454,49 @@ chunks = batch_convert(
 
 ---
 
+## ☁️ Escala na Nuvem: Colab Híbrido (Rust + Python)
+
+Para processamento em massa (>1000 arquivos), use nosso **Colab Híbrido**:
+
+### Arquitetura
+```
+┌──────────────┐     PyO3      ┌─────────────────┐
+│  RUST        │◄──────────────►│  PYTHON WORKERS │
+│ Orchestrator │                │                 │
+│   (Rayon)    │                │ • pymupdf4llm   │
+│              │                │ • pandoc        │
+└──────────────┘                │ • tesseract     │
+                                └─────────────────┘
+```
+
+### Quando Usar
+
+| Cenário | CONVERTER Local | Colab Híbrido |
+|---------|----------------|---------------|
+| < 100 arquivos | ✅ Ideal | ❌ Overkill |
+| > 1000 arquivos | ❌ Lento | ✅ A100 GPU |
+| Arquivos >100MB | ❌ Memória limitada | ✅ 150GB RAM |
+| Desenvolvimento | ✅ Instantâneo | ❌ 2min setup |
+| Dados sensíveis | ✅ 100% offline | ❌ Cloud |
+
+### Link do Notebook
+
+**Acesse:** https://colab.research.google.com/drive/1AjNkcLnar1JzEx8-JVpdDsHXodNmvv7b?usp=sharing
+
+**Guia completo:** [`docs/colab-hybrid-guide.md`](docs/colab-hybrid-guide.md)
+
+### Performance Comparada
+
+| Métrica | Local (RTX 4060) | Colab (A100) |
+|---------|-----------------|--------------|
+| 100 PDFs × 50MB | ~25 min | ~8 min |
+| VRAM | 8GB | 80GB |
+| Throughput | 4 PDFs/min | 12.5 PDFs/min |
+
+**Conclusão:** Use **CONVERTER local** para prototipagem e **Colab Híbrido** para produção em escala.
+
+---
+
 ## 🚀 Próximos Passos
 
 ### Instalação

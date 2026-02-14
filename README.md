@@ -954,3 +954,4 @@ MIT License — veja [LICENSE](LICENSE) para detalhes.
   <a href="https://kazuba.dev">kazuba.dev</a> • 
   <a href="https://github.com/kazuba/converter">GitHub</a>
 </p>
+<!-- GitHub: https://github.com/gabrielgadea/converter -->

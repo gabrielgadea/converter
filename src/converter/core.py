@@ -3187,3 +3187,170 @@ def main(
 
 if __name__ == "__main__":
     app()
+
+
+# ============================================
+# BATCH CONVERTER (ORQUESTRADOR)
+# ============================================
+
+class BatchConverter:
+    """
+    Orquestrador de conversão em lote.
+    
+    Detecta o tipo de arquivo e delega para o conversor apropriado:
+    - Excel (.xlsx, .xls) → ExcelConverter
+    - PDF (.pdf) → PDFConverter
+    - Outros → Fallback básico
+    """
+
+    def __init__(self, use_ocr: bool = False, gpu: bool = True, verbose: bool = False):
+        self.use_ocr = use_ocr
+        self.gpu = gpu
+        self.verbose = verbose
+        self.logger = SimpleLogger(verbose=verbose)
+        
+        # Inicializar conversores específicos
+        self.excel_converter = ExcelConverter(self.logger)
+        
+        # Para PDF, precisamos de mais dependências
+        self._pdf_converter = None
+        self._config = None
+        
+    def _get_pdf_converter(self) -> Optional[PDFConverter]:
+        """Lazy initialization do PDF converter."""
+        if self._pdf_converter is None:
+            try:
+                from .cascades import OCRCascade, TableCascade
+                from .preprocessing import ImagePreprocessor
+                
+                self._config = ConversionConfig(
+                    ocr_engine="paddle" if self.use_ocr else "none",
+                    force_cpu=not self.gpu,
+                )
+                
+                ocr_cascade = OCRCascade(self._config, self.logger)
+                table_cascade = TableCascade(self._config, self.logger)
+                preprocessor = ImagePreprocessor(self._config, self.logger)
+                
+                self._pdf_converter = PDFConverter(
+                    self._config, self.logger, ocr_cascade, table_cascade, preprocessor
+                )
+            except ImportError as e:
+                self.logger.warning(f"PDF converter dependencies not available: {e}")
+                return None
+                
+        return self._pdf_converter
+
+    def convert(self, input_path: str | Path, output_path: str | Path | None = None) -> str:
+        """
+        Converte um arquivo para Markdown.
+        
+        Args:
+            input_path: Caminho do arquivo de entrada
+            output_path: Caminho do arquivo de saída (opcional)
+            
+        Returns:
+            Conteúdo Markdown como string
+        """
+        path = Path(input_path)
+        
+        if not path.exists():
+            raise FileNotFoundError(f"File not found: {path}")
+        
+        self.logger.info(f"Converting: {path}")
+        
+        # Delegar para o conversor apropriado
+        if self.excel_converter.can_convert(path):
+            content, count = self.excel_converter.convert(path)
+            
+        elif path.suffix.lower() == '.pdf':
+            pdf_converter = self._get_pdf_converter()
+            if pdf_converter:
+                content, count = pdf_converter.convert(path)
+            else:
+                # Fallback básico
+                content, count = self._convert_pdf_basic(path)
+                
+        else:
+            # Fallback: tentar ler como texto
+            try:
+                content = path.read_text(encoding='utf-8', errors='ignore')
+                count = 1
+            except Exception as e:
+                self.logger.error(f"Cannot convert {path}: {e}")
+                content, count = "", 0
+        
+        # Salvar se output_path especificado
+        if output_path and content:
+            output_file = Path(output_path)
+            output_file.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Adicionar extensão .md se não tiver
+            if not output_file.suffix:
+                output_file = output_file.with_suffix('.md')
+                
+            output_file.write_text(content, encoding='utf-8')
+            self.logger.info(f"Saved to: {output_file}")
+        
+        return content
+
+    def _convert_pdf_basic(self, path: Path) -> tuple[str, int]:
+        """Fallback básico para PDF quando o conversor completo não está disponível."""
+        try:
+            if not HAS_PYMUPDF:
+                return "# PDF Conversion\n\nPyMuPDF not available.", 0
+                
+            doc = fitz.open(path)
+            sections = []
+            
+            for page_num, page in enumerate(doc, 1):
+                text = page.get_text()
+                if text.strip():
+                    sections.append(f"## Page {page_num}\n\n{text}")
+                    
+            doc.close()
+            content = "\n\n".join(sections)
+            return content, len(sections)
+            
+        except Exception as e:
+            self.logger.error(f"Basic PDF conversion failed: {e}")
+            return "", 0
+
+    def convert_batch(
+        self, 
+        input_paths: list[str | Path], 
+        output_dir: str | Path,
+        progress_callback: Optional[callable] = None
+    ) -> list[str]:
+        """
+        Converte múltiplos arquivos.
+        
+        Args:
+            input_paths: Lista de caminhos de entrada
+            output_dir: Diretório de saída
+            progress_callback: Função opcional para reportar progresso
+            
+        Returns:
+            Lista de caminhos dos arquivos gerados
+        """
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        results = []
+        total = len(input_paths)
+        
+        for i, input_path in enumerate(input_paths, 1):
+            path = Path(input_path)
+            output_file = output_dir / f"{path.stem}.md"
+            
+            try:
+                self.convert(path, output_file)
+                results.append(str(output_file))
+                
+                if progress_callback:
+                    progress_callback(i, total, path.name)
+                    
+            except Exception as e:
+                self.logger.error(f"Failed to convert {path}: {e}")
+                
+        return results

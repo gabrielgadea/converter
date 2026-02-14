@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
-name = "converter"
-version = "0.1.0"
+name = "kazuba-converter"
+version = "0.2.1"
 description = "Converta documentos para Markdown estruturado — libere seu conhecimento de PDFs"
 readme = "README.md"
 license = {text = "MIT"}
@@ -82,7 +82,7 @@ dev = [
 ]
 
 [project.scripts]
-converter = "converter.cli:main"
+kazuba-converter = "converter.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/kazuba/converter"
@@ -90,8 +90,11 @@ Documentation = "https://github.com/kazuba/converter#readme"
 Repository = "https://github.com/kazuba/converter"
 Issues = "https://github.com/kazuba/converter/issues"
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/converter"]
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+converter = "src/converter"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

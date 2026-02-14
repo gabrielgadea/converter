@@ -1,0 +1,7 @@
+"""
+Entry point para python -m converter
+"""
+from converter.cli import main
+
+if __name__ == "__main__":
+    main()

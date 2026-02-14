@@ -2,9 +2,9 @@
 """CLI do CONVERTER — Interface para Batch2MD v7.2
 
 Uso:
-    converter documento.pdf ./output/
-    converter pasta/ ./output/ --ocr --workers 8
-    converter arquivo.zip ./output/ --extract-nested
+    converter convert documento.pdf ./output/
+    converter batch ./pasta/ ./output/ --workers 8
+    converter --help
 """
 
 import click
@@ -20,97 +20,44 @@ src_path = Path(__file__).parent
 if str(src_path) not in sys.path:
     sys.path.insert(0, str(src_path))
 
-# Importar do core (Batch2MD v7.2 adaptado)
-try:
-    from core import BatchConverter
-except ImportError:
-    # Fallback para instalação via pip
-    from converter.core import BatchConverter
-
 console = Console()
 
-@click.command()
+@click.group()
+@click.version_option(version='0.2.0', prog_name='kazuba-converter')
+def cli():
+    """CONVERTER — Liberte seu conhecimento de documentos."""
+    pass
+
+@cli.command()
 @click.argument('input_path', type=click.Path(exists=True))
 @click.argument('output_path', type=click.Path())
-@click.option(
-    '--ocr', 
-    is_flag=True, 
-    help='Forçar OCR para PDFs escaneados'
-)
-@click.option(
-    '--gpu/--no-gpu', 
-    default=True, 
-    help='Usar GPU se disponível (padrão: True)'
-)
-@click.option(
-    '--tables/--no-tables', 
-    default=True, 
-    help='Extrair tabelas (padrão: True)'
-)
-@click.option(
-    '--workers', 
-    default=4, 
-    type=int,
-    help='Número de workers paralelos (padrão: 4)'
-)
-@click.option(
-    '--extract-nested', 
-    is_flag=True,
-    help='Extrair ZIPs aninhados recursivamente'
-)
-@click.option(
-    '--verbose', '-v',
-    is_flag=True,
-    help='Modo verbose com logs detalhados'
-)
-@click.version_option(
-    version='0.1.0',
-    prog_name='converter'
-)
-def main(input_path, output_path, ocr, gpu, tables, workers, extract_nested, verbose):
-    """
-    Converta documentos (PDF, DOCX, XLSX, HTML, ZIP) para Markdown estruturado.
+@click.option('--ocr', is_flag=True, help='Forçar OCR para PDFs escaneados')
+@click.option('--gpu/--no-gpu', default=True, help='Usar GPU se disponível (padrão: True)')
+@click.option('--tables/--no-tables', default=True, help='Extrair tabelas (padrão: True)')
+@click.option('--workers', '-w', default=4, help='Número de workers paralelos (padrão: 4)')
+@click.option('--verbose', '-v', is_flag=True, help='Modo verbose com logs detalhados')
+@click.option('--extract-nested', is_flag=True, help='Extrair ZIPs aninhados')
+def convert(input_path, output_path, ocr, gpu, tables, workers, verbose, extract_nested):
+    """Converte documentos para Markdown (modo simples)."""
+    # Importar aqui para evitar overhead no startup
+    try:
+        from converter.core import BatchConverter
+    except ImportError:
+        from core import BatchConverter
     
-    O CONVERTER preserva a estrutura semântica dos documentos, tornando-os
-    legíveis por qualquer modelo de linguagem (GPT, Claude, Gemini, etc).
-    
-    \b
-    Exemplos:
-    
-        \b
-        # Converter um PDF
-        converter documento.pdf ./output/
-        
-        \b
-        # Converter com OCR (para PDFs escaneados)
-        converter documento.pdf ./output/ --ocr
-        
-        \b
-        # Converter pasta inteira (batch)
-        converter ./pasta_documentos/ ./output/ --workers 8
-        
-        \b
-        # Extrair e converter ZIP
-        converter arquivo.zip ./output/ --extract-nested
-    
-    Para mais informações: https://github.com/kazuba/converter
-    """
     input_path = Path(input_path)
     output_path = Path(output_path)
-    
-    # Criar diretório de saída se não existir
     output_path.mkdir(parents=True, exist_ok=True)
     
-    # Banner
     console.print(Panel.fit(
         "[bold blue]CONVERTER[/bold blue] — Liberte seu conhecimento\n"
-        "[dim]Baseado em Batch2MD v7.2 — 3.190 linhas validadas[/dim]",
+        "[dim]Batch2MD v7.2 — Conversão individual[/dim]",
         border_style="blue"
     ))
     
     console.print(f"📄 Input: {input_path}")
     console.print(f"📁 Output: {output_path}")
-    console.print(f"⚙️  Config: OCR={ocr}, GPU={gpu}, Tables={tables}, Workers={workers}")
+    console.print(f"⚙️  OCR={ocr}, GPU={gpu}, Tables={tables}, Workers={workers}")
     console.print()
     
     try:
@@ -123,7 +70,6 @@ def main(input_path, output_path, ocr, gpu, tables, workers, extract_nested, ver
             
             task = progress.add_task("Convertendo...", total=None)
             
-            # Inicializar converter (Batch2MD v7.2)
             converter = BatchConverter(
                 use_ocr=ocr,
                 use_gpu=gpu,
@@ -133,41 +79,93 @@ def main(input_path, output_path, ocr, gpu, tables, workers, extract_nested, ver
                 verbose=verbose
             )
             
-            # Processar
             result = converter.process(input_path, output_path)
-            
             progress.update(task, completed=True)
         
-        # Resultado
         console.print()
         console.print(Panel.fit(
             f"✅ [bold green]Conversão completa![/bold green]\n\n"
-            f"📊 Arquivos processados: {result.get('files_processed', 'N/A')}\n"
-            f"📄 Páginas convertidas: {result.get('pages_processed', 'N/A')}\n"
-            f"⏱️  Tempo: {result.get('elapsed_time', 'N/A')}\n"
-            f"📁 Saída: {output_path}",
+            f"📊 Arquivos: {result.get('files_processed', 'N/A')}\n"
+            f"📄 Páginas: {result.get('pages_processed', 'N/A')}\n"
+            f"⏱️  Tempo: {result.get('elapsed_time', 'N/A')}",
             border_style="green"
         ))
-        
-        console.print()
-        console.print("[dim]💡 Dica: Use 'converter --help' para ver todas as opções[/dim]")
         
         return 0
         
     except Exception as e:
         console.print()
         console.print(Panel.fit(
-            f"❌ [bold red]Erro na conversão[/bold red]\n\n"
-            f"{str(e)}\n\n"
-            f"[dim]Use --verbose para ver o traceback completo[/dim]",
+            f"❌ [bold red]Erro:[/bold red] {str(e)}\n"
+            f"[dim]Use --verbose para traceback[/dim]",
             border_style="red"
         ))
-        
         if verbose:
             import traceback
             console.print_exception()
-        
         return 1
 
+@cli.command()
+@click.argument('input_dir', type=click.Path(exists=True, file_okay=False))
+@click.argument('output_dir', type=click.Path())
+@click.option('--workers', '-w', type=int, default=None, help='Número de workers (padrão: auto)')
+@click.option('--pattern', '-p', default='*.pdf', help='Padrão de arquivos')
+@click.option('--checkpoint', '-c', default='checkpoint.json', help='Arquivo de checkpoint')
+@click.option('--reset', is_flag=True, help='Resetar checkpoint e reprocessar tudo')
+@click.option('--verbose', '-v', is_flag=True, help='Modo verbose')
+def batch(input_dir, output_dir, workers, pattern, checkpoint, reset, verbose):
+    """
+    Processa batch com worker pool persistente e checkpoint/resume.
+    
+    Ideal para jobs grandes (1000+ arquivos) e execuções longas.
+    Elimina overhead de subprocess ao manter workers rodando.
+    """
+    from converter.batch_processor import BatchProcessor
+    
+    if verbose:
+        import logging
+        logging.getLogger().setLevel(logging.DEBUG)
+    
+    console.print(Panel.fit(
+        "[bold blue]CONVERTER BATCH[/bold blue] — Worker Pool Persistente\n"
+        "[dim]Com checkpoint/resume para jobs longos[/dim]",
+        border_style="blue"
+    ))
+    
+    input_path = Path(input_dir)
+    output_path = Path(output_dir)
+    
+    processor = BatchProcessor(
+        input_dir=input_path,
+        output_dir=output_path,
+        num_workers=workers,
+        checkpoint_file=Path(checkpoint)
+    )
+    
+    if reset:
+        if click.confirm("⚠️  Isso apagará o progresso salvo. Continuar?"):
+            processor.checkpoint.reset()
+        else:
+            console.print("Cancelado.")
+            return 0
+    
+    stats = processor.process_batch(pattern=pattern)
+    
+    console.print()
+    console.print(Panel.fit(
+        f"✅ [bold green]Batch completo![/bold green]\n\n"
+        f"📊 Processados: {stats['completed']}\n"
+        f"❌ Falhas: {stats['failed']}\n"
+        f"⏭️  Pulados: {stats['skipped']}\n"
+        f"⏱️  Tempo: {stats['total_time']:.1f}s\n"
+        f"⚡ Throughput: {stats['completed'] / (stats['total_time'] / 60):.1f} arquivos/min",
+        border_style="green"
+    ))
+    
+    return 0 if stats['failed'] == 0 else 1
+
+# Compatibilidade com chamadas antigas
+main = cli
+
 if __name__ == '__main__':
-    sys.exit(main())
+    cli()

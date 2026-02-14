@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kazuba-converter"
-version = "0.2.2"
+version = "0.2.3"
 description = "Converta documentos para Markdown estruturado — libere seu conhecimento de PDFs"
 readme = "README.md"
 license = {text = "MIT"}

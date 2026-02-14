@@ -14,8 +14,8 @@
 - [Instalação Rápida](#-instalação-rápida)
 - [Uso Básico](#-uso-básico)
 - [Uso no Google Colab (Para Iniciantes)](#️-uso-no-google-colab-para-iniciantes)
-- [Por Que Converter?](#-por-que-converter)
-- [Comparativo Técnico](#-comparativo-técnico)
+- [Uso Básico](#-uso-básico)
+- [Uso no Google Colab (Para Iniciantes)](#️-uso-no-google-colab-para-iniciantes)
 - [API Reference](#-api-reference)
 - [Exemplos Avançados](#-exemplos-avançados)
 - [Benchmarks](#-benchmarks)
@@ -23,6 +23,7 @@
 - [Roadmap](#-roadmap)
 
 ---
+
 
 ## 🚀 Instalação Rápida
 
@@ -46,6 +47,57 @@ conda install -c kazuba kazuba-converter
 ```
 
 ---
+
+
+## 💡 Por Que Converter?
+
+### O Problema: Documentos vs. LLMs
+
+| Aspecto | PDF Original | Markdown Convertido |
+|---------|--------------|---------------------|
+| **Tamanho** | Binário (sem compressão) | Texto puro (~60% menor) |
+| **Tokens** | Ineficiente (fragmentado) | Eficiente (estruturado) |
+| **RAG** | Contexto perdido | Hierarquia preservada |
+| **Custo** | Alto (mais tokens) | Baixo (menos tokens) |
+
+### Benefícios Quantificados
+
+- **60% menos tokens** para mesma informação
+- **95% accuracy** em extração de tabelas (vs. 70% com PDF cru)
+- **10-50x speedup** com batch processing e worker pool persistente
+- **$0 custo** vs. ~$180K/ano em Cloud APIs para 10K docs/mês
+
+---
+
+
+## ⚖️ Comparativo Técnico
+
+### kazuba-converter vs. Alternativas
+
+| Dimensão | kazuba-converter | MarkItDown | Pandoc | Cloud APIs |
+|----------|-----------------|------------|--------|------------|
+| **OCR** | ✅ Cascade (Paddle→Easy→Tesseract) | ⚠️ Básico | ❌ Não possui | ✅ Avançado |
+| **Tabelas** | ✅ ML (Docling 97.9%) | ⚠️ Heurístico | ⚠️ Básico | ✅ Avançado |
+| **GPU Opt** | ✅ A100/V100/T4 auto | ❌ Não | ❌ Não | ⚠️ Cloud-only |
+| **Batch** | ✅ Checkpoint/resume | ❌ Não | ❌ Não | ✅ Via API |
+| **Custo (10K/mês)** | **$0** | $0 | $0 | **~$180K/ano** |
+| **Offline** | ✅ 100% | ✅ 100% | ✅ 100% | ❌ Cloud-only |
+| **Setup** | 5 minutos | 2 minutos | 10 minutos | 4 horas |
+| **Tabelas PT-BR** | ✅ Excelente | ⚠️ Regular | ⚠️ Regular | ✅ Boa |
+
+### Quando Usar Cada Um
+
+| Cenário | Recomendação |
+|---------|--------------|
+| **Casual (< 50 docs)** | MarkItDown — leve, simples |
+| **LaTeX/EPUB** | Pandoc — 32+ formatos |
+| **PDFs escaneados PT-BR** | **kazuba-converter** — PaddleOCR nativo |
+| **Volume alto (> 1K/mês)** | **kazuba-converter** — batch + checkpoint |
+| **Pipeline RAG** | **kazuba-converter** — estrutura semântica |
+| **Máx accuracy + budget** | Cloud APIs — 95-98% OCR |
+
+---
+
 
 ## 🎯 Uso Básico
 
@@ -89,6 +141,7 @@ for result in batch_convert(
 ```
 
 ---
+
 
 ## ☁️ Uso no Google Colab (Para Iniciantes)
 
@@ -243,53 +296,6 @@ print("\n🎉 Pronto! Verifique a pasta de downloads do seu navegador.")
 
 ---
 
-## 💡 Por Que Converter?
-
-### O Problema: Documentos vs. LLMs
-
-| Aspecto | PDF Original | Markdown Convertido |
-|---------|--------------|---------------------|
-| **Tamanho** | Binário (sem compressão) | Texto puro (~60% menor) |
-| **Tokens** | Ineficiente (fragmentado) | Eficiente (estruturado) |
-| **RAG** | Contexto perdido | Hierarquia preservada |
-| **Custo** | Alto (mais tokens) | Baixo (menos tokens) |
-
-### Benefícios Quantificados
-
-- **60% menos tokens** para mesma informação
-- **95% accuracy** em extração de tabelas (vs. 70% com PDF cru)
-- **10-50x speedup** com batch processing e worker pool persistente
-- **$0 custo** vs. ~$180K/ano em Cloud APIs para 10K docs/mês
-
----
-
-## ⚖️ Comparativo Técnico
-
-### kazuba-converter vs. Alternativas
-
-| Dimensão | kazuba-converter | MarkItDown | Pandoc | Cloud APIs |
-|----------|-----------------|------------|--------|------------|
-| **OCR** | ✅ Cascade (Paddle→Easy→Tesseract) | ⚠️ Básico | ❌ Não possui | ✅ Avançado |
-| **Tabelas** | ✅ ML (Docling 97.9%) | ⚠️ Heurístico | ⚠️ Básico | ✅ Avançado |
-| **GPU Opt** | ✅ A100/V100/T4 auto | ❌ Não | ❌ Não | ⚠️ Cloud-only |
-| **Batch** | ✅ Checkpoint/resume | ❌ Não | ❌ Não | ✅ Via API |
-| **Custo (10K/mês)** | **$0** | $0 | $0 | **~$180K/ano** |
-| **Offline** | ✅ 100% | ✅ 100% | ✅ 100% | ❌ Cloud-only |
-| **Setup** | 5 minutos | 2 minutos | 10 minutos | 4 horas |
-| **Tabelas PT-BR** | ✅ Excelente | ⚠️ Regular | ⚠️ Regular | ✅ Boa |
-
-### Quando Usar Cada Um
-
-| Cenário | Recomendação |
-|---------|--------------|
-| **Casual (< 50 docs)** | MarkItDown — leve, simples |
-| **LaTeX/EPUB** | Pandoc — 32+ formatos |
-| **PDFs escaneados PT-BR** | **kazuba-converter** — PaddleOCR nativo |
-| **Volume alto (> 1K/mês)** | **kazuba-converter** — batch + checkpoint |
-| **Pipeline RAG** | **kazuba-converter** — estrutura semântica |
-| **Máx accuracy + budget** | Cloud APIs — 95-98% OCR |
-
----
 
 ## 📚 API Reference
 

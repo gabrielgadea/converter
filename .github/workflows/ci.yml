@@ -36,8 +36,8 @@ jobs:
     
     - name: Test CLI works
       run: |
-        converter --version
-        converter --help
+        kazuba-converter --version
+        kazuba-converter --help
     
     - name: Lint with ruff
       run: |

@@ -14,13 +14,13 @@
 - [Instalação Rápida](#-instalação-rápida)
 - [Uso Básico](#-uso-básico)
 - [Uso no Google Colab (Para Iniciantes)](#️-uso-no-google-colab-para-iniciantes)
-- [Uso Básico](#-uso-básico)
-- [Uso no Google Colab (Para Iniciantes)](#️-uso-no-google-colab-para-iniciantes)
 - [API Reference](#-api-reference)
 - [Exemplos Avançados](#-exemplos-avançados)
 - [Benchmarks](#-benchmarks)
 - [Troubleshooting](#-troubleshooting)
 - [Roadmap](#-roadmap)
+- [Contribuindo](#-contribuindo)
+- [Licença](#-licença)
 
 ---
 
@@ -715,21 +715,13 @@ for check, passed in validation.items():
 ### Reproduzir Benchmarks
 
 ```bash
-# Clone o repositório de benchmarks
-git clone https://github.com/kazuba/converter-benchmarks
-cd converter-benchmarks
-
-# Instale dependências
-pip install -r requirements.txt
-
-# Execute benchmarks
+# Use o script de benchmark incluído
 python benchmark.py \
     --input ./test_corpus/ \
-    --tools kazuba,markitdown,pandoc \
     --output ./results/
 
-# Gere relatório
-python generate_report.py --results ./results/
+# Ou rode via pytest
+pytest tests/ -v --benchmark-only
 ```
 
 ---
@@ -861,17 +853,9 @@ kazuba-converter documento.pdf ./output/ -vvv
 kazuba-converter batch ./input/ ./output/ --log-level DEBUG 2>&1 | tee conversion.log
 ```
 
-### Suporte
-
-- **Issues:** https://github.com/kazuba/converter/issues
-- **Discussions:** https://github.com/kazuba/converter/discussions
-- **Email:** support@kazuba.dev
-
----
-
 ## 🗺️ Roadmap
 
-### ✅ Implementado (v0.2.0)
+### ✅ Implementado (v0.2.4)
 
 - [x] Extração PDF → Markdown (pymupdf4llm)
 - [x] OCR cascata (Tesseract fallback)
@@ -882,19 +866,20 @@ kazuba-converter batch ./input/ ./output/ --log-level DEBUG 2>&1 | tee conversio
 - [x] Batch processor com progresso
 - [x] CLI completo
 - [x] Publicação PyPI
+- [x] CI/CD pipeline (GitHub Actions)
+- [x] Testes automatizados (pytest)
 
 ### 🚧 Prioridade Imediata (v0.3.0)
 
 - [ ] **Documentação técnica completa**
   - [ ] API reference detalhado (100% coverage)
-  - [ ] Guia de contribuição
+  - [x] Guia de contribuição (CONTRIBUTING.md)
   - [ ] Documentação de arquitetura
   
-- [ ] **Testes automatizados**
+- [ ] **Testes adicionais**
   - [ ] Unit tests (target: 90%+ coverage)
   - [ ] Integration tests
   - [ ] Benchmarks automatizados
-  - [ ] CI/CD pipeline (GitHub Actions)
   
 - [ ] **Simplificação de setup**
   - [ ] Docker image oficial
@@ -956,8 +941,7 @@ MIT License — veja [LICENSE](LICENSE) para detalhes.
 ---
 
 <p align="center">
-  <b>Feito com 💙 pela equipe Kazuba</b><br>
-  <a href="https://kazuba.dev">kazuba.dev</a> • 
-  <a href="https://github.com/kazuba/converter">GitHub</a>
+  <b>Feito com 💙 por Gabriel Gadêa</b><br>
+  <a href="https://github.com/gabrielgadea/converter">GitHub</a> • 
+  <a href="https://pypi.org/project/kazuba-converter/">PyPI</a>
 </p>
-<!-- GitHub: https://github.com/gabrielgadea/converter -->

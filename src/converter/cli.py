@@ -23,7 +23,7 @@ if str(src_path) not in sys.path:
 console = Console()
 
 @click.group()
-@click.version_option(version='0.2.0', prog_name='kazuba-converter')
+@click.version_option(version='0.2.3', prog_name='kazuba-converter')
 def cli():
     """CONVERTER — Liberte seu conhecimento de documentos."""
     pass

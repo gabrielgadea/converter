@@ -3,7 +3,7 @@
 Baseado em Batch2MD v7.2 (3.190 linhas, validado em produção ANTT desde 2025-12).
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.3"
 __author__ = "Gabriel Gadêa"
 __license__ = "MIT"
 

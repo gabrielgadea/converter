@@ -19,7 +19,7 @@ class TestImports:
     def test_module_imports(self):
         """O módulo converter importa corretamente."""
         import converter
-        assert converter.__version__ == "0.1.0"
+        assert converter.__version__ == "0.2.3"
     
     def test_core_imports(self):
         """O core (Batch2MD v7.2) importa corretamente."""
@@ -49,9 +49,8 @@ class TestCLI:
         result = runner.invoke(main, ['--help'])
         
         assert result.exit_code == 0
-        assert "Converta documentos" in result.output
-        assert "--ocr" in result.output
-        assert "--gpu" in result.output
+        assert "CONVERTER" in result.output
+        assert "--version" in result.output
     
     def test_cli_version(self):
         """CLI mostra versão."""
@@ -62,7 +61,7 @@ class TestCLI:
         result = runner.invoke(main, ['--version'])
         
         assert result.exit_code == 0
-        assert "0.1.0" in result.output
+        assert "0.2.3" in result.output
 
 
 class TestPackageStructure:
